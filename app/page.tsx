@@ -123,7 +123,7 @@ export default function Home() {
           className="text-[2.6rem] leading-none tracking-tight mb-2"
           style={{ fontFamily: "var(--font-fraunces), serif", color: "var(--color-ink)" }}
         >
-          Unit Price
+          Grocery Price Calculator
         </h1>
         <p className="text-sm" style={{ color: "var(--color-muted)" }}>
           Compare the true cost across items
@@ -357,23 +357,21 @@ export default function Home() {
           <PlusIcon />
           Add item
         </button>
-        {items.length > 2 && (
-          <button
-            onClick={() => {
-              counter = 3;
-              setItems([
-                { id: 1, price: "", quantity: "" },
-                { id: 2, price: "", quantity: "" },
-              ]);
-            }}
-            className="text-sm px-4 py-3 transition-colors"
-            style={{ color: "var(--color-faint)" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-muted)")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-faint)")}
-          >
-            Reset
-          </button>
-        )}
+        <button
+          onClick={() => {
+            counter = 3;
+            setItems([
+              { id: 1, price: "", quantity: "" },
+              { id: 2, price: "", quantity: "" },
+            ]);
+          }}
+          className="text-sm px-4 py-3 transition-colors"
+          style={{ color: "var(--color-faint)" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-muted)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-faint)")}
+        >
+          Reset
+        </button>
       </div>
 
       {/* Results — fixed width */}
@@ -404,19 +402,25 @@ export default function Home() {
                     color: "var(--color-ink)",
                   }}
                 >
-                  {sorted[0].label} is cheaper
+                  {Math.abs(sorted[0].ppu! - sorted[1].ppu!) < 1e-10 ? "It's a tie!" : `${sorted[0].label} is cheaper`}
                 </p>
-                <p className="text-sm" style={{ color: "var(--color-muted)" }}>
-                  {sorted[0].label} is{" "}
-                  <span style={{ color: "var(--color-accent)", fontWeight: 600 }}>
-                    {(
-                      ((sorted[1].ppu! - sorted[0].ppu!) / sorted[1].ppu!) *
-                      100
-                    ).toFixed(1)}
-                    % cheaper
-                  </span>{" "}
-                  than {sorted[1].label}
-                </p>
+                {Math.abs(sorted[0].ppu! - sorted[1].ppu!) < 1e-10 ? (
+                  <p className="text-sm" style={{ color: "var(--color-muted)" }}>
+                    Both items cost exactly the same per unit. Either one is a great pick!
+                  </p>
+                ) : (
+                  <p className="text-sm" style={{ color: "var(--color-muted)" }}>
+                    {sorted[0].label} is{" "}
+                    <span style={{ color: "var(--color-accent)", fontWeight: 600 }}>
+                      {(
+                        ((sorted[1].ppu! - sorted[0].ppu!) / sorted[1].ppu!) *
+                        100
+                      ).toFixed(1)}
+                      % cheaper
+                    </span>{" "}
+                    than {sorted[1].label}
+                  </p>
+                )}
               </div>
             ) : (
               /* Multi-item ranked table */
