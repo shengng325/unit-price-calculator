@@ -1,65 +1,462 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useMemo } from "react";
+
+interface Item {
+  id: number;
+  price: string;
+  quantity: string;
+}
+
+let counter = 3;
+
+const COMMON_UNITS = ["g", "kg", "mg", "ml", "L", "oz", "lb", "pcs", "servings"];
+
+function LightbulbIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M15 14c.2-1 .7-1.7 1.5-2.5C17.9 10.2 19 8.7 19 7a7 7 0 1 0-13.4 2.8C6.4 11.4 7 12.2 7 14" />
+      <path d="M9 18h6" />
+      <path d="M10 22h4" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+    </svg>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+function formatPPU(ppu: number): string {
+  if (ppu === 0) return "0.00";
+  if (ppu < 0.001) return ppu.toFixed(5);
+  if (ppu < 0.01) return ppu.toFixed(4);
+  if (ppu < 1) return ppu.toFixed(3);
+  return ppu.toFixed(2);
+}
 
 export default function Home() {
+  const [items, setItems] = useState<Item[]>([
+    { id: 1, price: "", quantity: "" },
+    { id: 2, price: "", quantity: "" },
+  ]);
+
+  const updateItem = (id: number, field: "price" | "quantity", value: string) => {
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
+
+  const addItem = () => {
+    setItems((prev) => [...prev, { id: counter++, price: "", quantity: "" }]);
+  };
+
+  const removeItem = (id: number) => {
+    if (items.length <= 2) return;
+    setItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const calculated = useMemo(() => {
+    return items.map((item, index) => {
+      const price = parseFloat(item.price);
+      const qty = parseFloat(item.quantity);
+      const ppu =
+        !isNaN(price) && !isNaN(qty) && qty > 0 && price >= 0
+          ? price / qty
+          : null;
+      return { ...item, ppu, label: `Item ${index + 1}` };
+    });
+  }, [items]);
+
+  const validItems = calculated.filter((item) => item.ppu !== null);
+  const sorted = [...validItems].sort((a, b) => a.ppu! - b.ppu!);
+  const showResults = validItems.length >= 2;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="min-h-screen py-10 px-4 md:py-16" style={{ backgroundColor: "var(--color-paper)" }}>
+      <div className="max-w-[560px] mx-auto">
+
+        {/* Header */}
+        <div className="mb-10">
+          <h1
+            className="text-[2.6rem] leading-none tracking-tight mb-2"
+            style={{ fontFamily: "var(--font-fraunces), serif", color: "var(--color-ink)" }}
+          >
+            Unit Price
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-sm" style={{ color: "var(--color-muted)" }}>
+            Compare the true cost across items
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Item cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+          {calculated.map((item, index) => (
+            <div
+              key={item.id}
+              className="rounded-2xl p-5"
+              style={{
+                backgroundColor: "var(--color-card)",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              {/* Card header */}
+              <div className="flex items-center justify-between mb-5">
+                <span
+                  className="text-[10px] font-semibold uppercase tracking-[0.12em]"
+                  style={{ color: "var(--color-muted)" }}
+                >
+                  Item {index + 1}
+                </span>
+                {items.length > 2 && (
+                  <button
+                    onClick={() => removeItem(item.id)}
+                    className="flex items-center gap-1 text-xs transition-colors px-2 py-1 rounded-md"
+                    style={{ color: "var(--color-faint)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#C0392B")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-faint)")}
+                    aria-label="Remove item"
+                  >
+                    <TrashIcon />
+                  </button>
+                )}
+              </div>
+
+              {/* Price field */}
+              <div className="mb-3">
+                <label
+                  className="block text-[11px] font-medium uppercase tracking-[0.08em] mb-1.5"
+                  style={{ color: "var(--color-muted)" }}
+                >
+                  Price
+                </label>
+                <div
+                  className="flex items-center rounded-xl overflow-hidden transition-all"
+                  style={{ border: "1px solid var(--color-border)" }}
+                  onFocusCapture={(e) =>
+                    (e.currentTarget.style.borderColor = "var(--color-accent)")
+                  }
+                  onBlurCapture={(e) =>
+                    (e.currentTarget.style.borderColor = "var(--color-border)")
+                  }
+                >
+                  <span
+                    className="px-3 text-sm select-none"
+                    style={{
+                      color: "var(--color-muted)",
+                      backgroundColor: "var(--color-paper)",
+                      borderRight: "1px solid var(--color-border)",
+                      paddingTop: "10px",
+                      paddingBottom: "10px",
+                    }}
+                  >
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={item.price}
+                    onChange={(e) => updateItem(item.id, "price", e.target.value)}
+                    placeholder="0.00"
+                    className="flex-1 px-3 py-[10px] text-sm outline-none bg-white"
+                    style={{
+                      fontFamily: "var(--font-dm-mono), monospace",
+                      color: "var(--color-ink)",
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Quantity field */}
+              <div className="mb-5">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <label
+                    className="text-[11px] font-medium uppercase tracking-[0.08em]"
+                    style={{ color: "var(--color-muted)" }}
+                  >
+                    Quantity
+                  </label>
+                  <div className="tooltip-wrap relative flex items-center">
+                    <button
+                      className="flex items-center justify-center transition-colors"
+                      style={{ color: "var(--color-faint)" }}
+                      aria-label="Common units hint"
+                      tabIndex={-1}
+                    >
+                      <LightbulbIcon />
+                    </button>
+                    <div
+                      className="tooltip-box absolute bottom-full left-1/2 mb-2 z-10 rounded-xl shadow-lg px-3 py-2.5 min-w-[160px]"
+                      style={{
+                        backgroundColor: "var(--color-ink)",
+                        transform: "translateX(-50%)",
+                      }}
+                    >
+                      <p
+                        className="text-[10px] uppercase tracking-wider mb-2"
+                        style={{ color: "var(--color-muted)" }}
+                      >
+                        Common units
+                      </p>
+                      <div className="flex flex-wrap gap-x-3 gap-y-1">
+                        {COMMON_UNITS.map((u) => (
+                          <span
+                            key={u}
+                            className="text-xs"
+                            style={{ color: "#E8E6E0", fontFamily: "var(--font-dm-mono), monospace" }}
+                          >
+                            {u}
+                          </span>
+                        ))}
+                      </div>
+                      {/* Arrow */}
+                      <div
+                        className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0"
+                        style={{
+                          borderLeft: "5px solid transparent",
+                          borderRight: "5px solid transparent",
+                          borderTop: "5px solid var(--color-ink)",
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={item.quantity}
+                  onChange={(e) => updateItem(item.id, "quantity", e.target.value)}
+                  placeholder="0"
+                  className="w-full rounded-xl px-3 py-[10px] text-sm outline-none transition-all"
+                  style={{
+                    fontFamily: "var(--font-dm-mono), monospace",
+                    color: "var(--color-ink)",
+                    border: "1px solid var(--color-border)",
+                    backgroundColor: "var(--color-card)",
+                  }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "var(--color-accent)")}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "var(--color-border)")}
+                />
+              </div>
+
+              {/* Price per unit result */}
+              <div
+                className="rounded-xl px-4 py-3"
+                style={{ backgroundColor: "var(--color-paper)" }}
+              >
+                {item.ppu !== null ? (
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-[11px]" style={{ color: "var(--color-muted)" }}>
+                      per unit
+                    </span>
+                    <span
+                      className="text-lg font-medium"
+                      style={{
+                        fontFamily: "var(--font-fraunces), serif",
+                        color: "var(--color-accent)",
+                      }}
+                    >
+                      ${formatPPU(item.ppu)}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-[11px]" style={{ color: "var(--color-muted)" }}>
+                      per unit
+                    </span>
+                    <span
+                      className="text-lg"
+                      style={{
+                        fontFamily: "var(--font-fraunces), serif",
+                        color: "var(--color-faint)",
+                      }}
+                    >
+                      —
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
-      </main>
-    </div>
+
+        {/* Add item button */}
+        <button
+          onClick={addItem}
+          className="w-full py-3 rounded-2xl text-sm flex items-center justify-center gap-2 transition-all mb-8"
+          style={{
+            border: "1.5px dashed var(--color-border)",
+            color: "var(--color-muted)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "var(--color-accent)";
+            e.currentTarget.style.color = "var(--color-accent)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "var(--color-border)";
+            e.currentTarget.style.color = "var(--color-muted)";
+          }}
+        >
+          <PlusIcon />
+          Add item
+        </button>
+
+        {/* Results */}
+        {showResults && (
+          <div
+            key={sorted.map((i) => i.id).join("-")}
+            className="result-reveal rounded-2xl p-5"
+            style={{
+              backgroundColor: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+            }}
+          >
+            <p
+              className="text-[10px] font-semibold uppercase tracking-[0.12em] mb-4"
+              style={{ color: "var(--color-muted)" }}
+            >
+              Result
+            </p>
+
+            {sorted.length === 2 ? (
+              /* Two-item comparison */
+              <div>
+                <p
+                  className="text-2xl tracking-tight mb-1"
+                  style={{
+                    fontFamily: "var(--font-fraunces), serif",
+                    color: "var(--color-ink)",
+                  }}
+                >
+                  {sorted[0].label} is cheaper
+                </p>
+                <p className="text-sm" style={{ color: "var(--color-muted)" }}>
+                  {sorted[0].label} is{" "}
+                  <span style={{ color: "var(--color-accent)", fontWeight: 600 }}>
+                    {(
+                      ((sorted[1].ppu! - sorted[0].ppu!) / sorted[1].ppu!) *
+                      100
+                    ).toFixed(1)}
+                    % cheaper
+                  </span>{" "}
+                  than {sorted[1].label}
+                </p>
+              </div>
+            ) : (
+              /* Multi-item ranked table */
+              <div>
+                <p
+                  className="text-2xl tracking-tight mb-4"
+                  style={{
+                    fontFamily: "var(--font-fraunces), serif",
+                    color: "var(--color-ink)",
+                  }}
+                >
+                  {sorted[0].label} is cheapest
+                </p>
+                <table className="w-full">
+                  <thead>
+                    <tr>
+                      <th
+                        className="text-left pb-2.5 text-[10px] font-semibold uppercase tracking-[0.1em]"
+                        style={{ color: "var(--color-muted)" }}
+                      >
+                        Rank
+                      </th>
+                      <th
+                        className="text-left pb-2.5 text-[10px] font-semibold uppercase tracking-[0.1em]"
+                        style={{ color: "var(--color-muted)" }}
+                      >
+                        Item
+                      </th>
+                      <th
+                        className="text-right pb-2.5 text-[10px] font-semibold uppercase tracking-[0.1em]"
+                        style={{ color: "var(--color-muted)" }}
+                      >
+                        Per unit
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sorted.map((item, index) => (
+                      <tr
+                        key={item.id}
+                        style={{ borderTop: "1px solid var(--color-border-light)" }}
+                      >
+                        <td
+                          className="py-3 text-sm w-12"
+                          style={{ color: index === 0 ? "var(--color-accent)" : "var(--color-muted)" }}
+                        >
+                          #{index + 1}
+                        </td>
+                        <td
+                          className="py-3 text-sm"
+                          style={{
+                            color: "var(--color-ink)",
+                            fontWeight: index === 0 ? 500 : 400,
+                          }}
+                        >
+                          {item.label}
+                        </td>
+                        <td
+                          className="py-3 text-sm text-right"
+                          style={{
+                            fontFamily: "var(--font-dm-mono), monospace",
+                            color: index === 0 ? "var(--color-accent)" : "var(--color-ink)",
+                            fontWeight: index === 0 ? 500 : 400,
+                          }}
+                        >
+                          ${formatPPU(item.ppu!)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
