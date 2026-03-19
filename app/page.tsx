@@ -334,11 +334,11 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Add item button — fixed width */}
-      <div className="max-w-[560px] mx-auto">
+      {/* Add item / Reset row — fixed width */}
+      <div className="max-w-[560px] mx-auto flex items-center gap-3 mb-8">
         <button
           onClick={addItem}
-          className="w-full py-3 rounded-2xl text-sm flex items-center justify-center gap-2 transition-all mb-8"
+          className="flex-1 py-3 rounded-2xl text-sm flex items-center justify-center gap-2 transition-all"
           style={{
             border: "1.5px dashed var(--color-border)",
             color: "var(--color-muted)",
@@ -355,6 +355,23 @@ export default function Home() {
           <PlusIcon />
           Add item
         </button>
+        {items.length > 2 && (
+          <button
+            onClick={() => {
+              counter = 3;
+              setItems([
+                { id: 1, price: "", quantity: "" },
+                { id: 2, price: "", quantity: "" },
+              ]);
+            }}
+            className="text-sm px-4 py-3 transition-colors"
+            style={{ color: "var(--color-faint)" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-muted)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-faint)")}
+          >
+            Reset
+          </button>
+        )}
       </div>
 
       {/* Results — fixed width */}
