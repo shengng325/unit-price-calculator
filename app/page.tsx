@@ -211,7 +211,7 @@ export default function Home() {
                     value={item.price}
                     onChange={(e) => updateItem(item.id, "price", e.target.value)}
                     placeholder="0.00"
-                    className="flex-1 px-3 py-[10px] text-sm outline-none bg-white"
+                    className="flex-1 px-3 py-[10px] text-base outline-none bg-white"
                     style={{
                       fontFamily: "var(--font-dm-mono), monospace",
                       color: "var(--color-ink)",
@@ -282,7 +282,7 @@ export default function Home() {
                   value={item.quantity}
                   onChange={(e) => updateItem(item.id, "quantity", e.target.value)}
                   placeholder="0"
-                  className="w-full rounded-xl px-3 py-[10px] text-sm outline-none transition-all"
+                  className="w-full rounded-xl px-3 py-[10px] text-base outline-none transition-all"
                   style={{
                     fontFamily: "var(--font-dm-mono), monospace",
                     color: "var(--color-ink)",
