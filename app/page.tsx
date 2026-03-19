@@ -110,25 +110,38 @@ export default function Home() {
   const sorted = [...validItems].sort((a, b) => a.ppu! - b.ppu!);
   const showResults = validItems.length >= 2;
 
+  const cardWidth = 264; // px, fixed card width
+  const gap = 12; // gap-3 = 12px
+  const itemsGridMaxWidth = items.length * cardWidth + (items.length - 1) * gap;
+
   return (
-    <main className="min-h-screen py-10 px-4 md:py-16" style={{ backgroundColor: "var(--color-paper)" }}>
-      <div className="max-w-[560px] mx-auto">
+    <main className="min-h-screen py-10 md:py-16 px-4" style={{ backgroundColor: "var(--color-paper)" }}>
 
-        {/* Header */}
-        <div className="mb-10">
-          <h1
-            className="text-[2.6rem] leading-none tracking-tight mb-2"
-            style={{ fontFamily: "var(--font-fraunces), serif", color: "var(--color-ink)" }}
-          >
-            Unit Price
-          </h1>
-          <p className="text-sm" style={{ color: "var(--color-muted)" }}>
-            Compare the true cost across items
-          </p>
-        </div>
+      {/* Header — fixed width */}
+      <div className="max-w-[560px] mx-auto mb-10">
+        <h1
+          className="text-[2.6rem] leading-none tracking-tight mb-2"
+          style={{ fontFamily: "var(--font-fraunces), serif", color: "var(--color-ink)" }}
+        >
+          Unit Price
+        </h1>
+        <p className="text-sm" style={{ color: "var(--color-muted)" }}>
+          Compare the true cost across items
+        </p>
+      </div>
 
-        {/* Item cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+      {/* Item cards — expands to fit items in one row */}
+      <div
+        className="mx-auto mb-3"
+        style={{ maxWidth: `${itemsGridMaxWidth}px` }}
+      >
+        <div
+          className="grid gap-3"
+          style={{
+            gridTemplateColumns: `repeat(auto-fill, ${cardWidth}px)`,
+            justifyContent: "center",
+          }}
+        >
           {calculated.map((item, index) => (
             <div
               key={item.id}
@@ -319,8 +332,10 @@ export default function Home() {
             </div>
           ))}
         </div>
+      </div>
 
-        {/* Add item button */}
+      {/* Add item button — fixed width */}
+      <div className="max-w-[560px] mx-auto">
         <button
           onClick={addItem}
           className="w-full py-3 rounded-2xl text-sm flex items-center justify-center gap-2 transition-all mb-8"
@@ -340,8 +355,10 @@ export default function Home() {
           <PlusIcon />
           Add item
         </button>
+      </div>
 
-        {/* Results */}
+      {/* Results — fixed width */}
+      <div className="max-w-[560px] mx-auto">
         {showResults && (
           <div
             key={sorted.map((i) => i.id).join("-")}
