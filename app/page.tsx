@@ -207,6 +207,7 @@ export default function Home() {
                     type="number"
                     min="0"
                     step="0.01"
+                    onWheel={(e) => e.currentTarget.blur()}
                     value={item.price}
                     onChange={(e) => updateItem(item.id, "price", e.target.value)}
                     placeholder="0.00"
@@ -277,6 +278,7 @@ export default function Home() {
                   type="number"
                   min="0"
                   step="any"
+                  onWheel={(e) => e.currentTarget.blur()}
                   value={item.quantity}
                   onChange={(e) => updateItem(item.id, "quantity", e.target.value)}
                   placeholder="0"
