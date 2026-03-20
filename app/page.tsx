@@ -95,6 +95,7 @@ export default function Home() {
   const [tableExpanded, setTableExpanded] = useState(false);
   const [resultsHeight, setResultsHeight] = useState(0);
   const resultsRef = useRef<HTMLDivElement>(null);
+  const [focusItemId, setFocusItemId] = useState<number | null>(null);
   const [items, setItems] = useState<Item[]>([
     { id: 1, price: "", quantity: "" },
     { id: 2, price: "", quantity: "" },
@@ -107,7 +108,9 @@ export default function Home() {
   };
 
   const addItem = () => {
-    setItems((prev) => [...prev, { id: counter++, price: "", quantity: "" }]);
+    const newId = counter++;
+    setItems((prev) => [...prev, { id: newId, price: "", quantity: "" }]);
+    setFocusItemId(newId);
   };
 
   const removeItem = (id: number) => {
@@ -242,6 +245,7 @@ export default function Home() {
                     value={item.price}
                     onChange={(e) => updateItem(item.id, "price", e.target.value)}
                     placeholder="0.00"
+                    ref={(el) => { if (el && item.id === focusItemId) { el.focus(); setFocusItemId(null); } }}
                     className="flex-1 px-3 py-[10px] text-base outline-none bg-white"
                     style={{
                       fontFamily: "var(--font-dm-mono), monospace",
