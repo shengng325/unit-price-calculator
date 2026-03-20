@@ -96,6 +96,15 @@ export default function Home() {
   const [resultsHeight, setResultsHeight] = useState(0);
   const resultsRef = useRef<HTMLDivElement>(null);
   const [focusItemId, setFocusItemId] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(true);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    setIsMobile(!mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(!e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
   const [items, setItems] = useState<Item[]>([
     { id: 1, price: "", quantity: "" },
     { id: 2, price: "", quantity: "" },
@@ -149,7 +158,7 @@ export default function Home() {
   const itemsGridMaxWidth = items.length * cardWidth + (items.length - 1) * gap;
 
   return (
-    <main className="min-h-screen py-10 md:py-16 px-4" style={{ backgroundColor: "var(--color-paper)", paddingBottom: resultsHeight + 24 }}>
+    <main className="min-h-screen py-10 md:py-16 px-4" style={{ backgroundColor: "var(--color-paper)", paddingBottom: isMobile ? resultsHeight + 24 : 64 }}>
 
       {/* Header — fixed width */}
       <div className="max-w-[560px] mx-auto mb-10">
@@ -409,25 +418,25 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Results — fixed to bottom */}
+      {/* Results */}
       {showResults && (
       <div
         ref={resultsRef}
-        className="fixed bottom-0 left-0 right-0 px-4 pb-6 pt-3"
-        style={{ backgroundColor: "var(--color-paper)" }}
+        className={isMobile ? "fixed bottom-0 left-0 right-0 px-4 pb-6 pt-3" : "max-w-[560px] mx-auto mt-4"}
+        style={isMobile ? { backgroundColor: "var(--color-paper)" } : {}}
       >
-        <div className="max-w-[560px] mx-auto">
+        <div className={isMobile ? "max-w-[560px] mx-auto" : ""}>
           <div
             key={sorted.map((i) => i.id).join("-")}
             className="result-reveal rounded-2xl p-5"
             style={{
               backgroundColor: "var(--color-card)",
               border: "1px solid var(--color-border)",
-              boxShadow: "0 -4px 24px rgba(0,0,0,0.06)",
+              boxShadow: isMobile ? "0 -4px 24px rgba(0,0,0,0.06)" : "none",
             }}
           >
             <p
-              className="text-[10px] font-semibold uppercase tracking-[0.12em] mb-4"
+              className={`text-[10px] font-semibold uppercase tracking-[0.12em] mb-4 ${isMobile ? "hidden" : "block"}`}
               style={{ color: "var(--color-muted)" }}
             >
               Result
