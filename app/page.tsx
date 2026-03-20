@@ -120,6 +120,7 @@ export default function Home() {
     const newId = counter++;
     setItems((prev) => [...prev, { id: newId, price: "", quantity: "" }]);
     setFocusItemId(newId);
+    if (isMobile) setTableExpanded(false);
   };
 
   const removeItem = (id: number) => {
