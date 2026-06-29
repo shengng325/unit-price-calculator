@@ -91,6 +91,85 @@ function formatPPU(ppu: number): string {
   return ppu.toFixed(2);
 }
 
+// Safely evaluate a simple arithmetic expression supporting + - * / and
+// parentheses, plus "x"/"×" for multiplication and "÷" for division.
+// Returns null for empty or invalid input. Uses a hand-written recursive
+// descent parser — no eval().
+function evaluateExpression(input: string): number | null {
+  if (!input.trim()) return null;
+  const s = input.replace(/[xX×]/g, "*").replace(/÷/g, "/");
+  let pos = 0;
+
+  const skipWs = () => {
+    while (pos < s.length && s[pos] === " ") pos++;
+  };
+
+  const parseExpr = (): number => {
+    let value = parseTerm();
+    skipWs();
+    while (s[pos] === "+" || s[pos] === "-") {
+      const op = s[pos++];
+      const rhs = parseTerm();
+      value = op === "+" ? value + rhs : value - rhs;
+      skipWs();
+    }
+    return value;
+  };
+
+  const parseTerm = (): number => {
+    let value = parseFactor();
+    skipWs();
+    while (s[pos] === "*" || s[pos] === "/") {
+      const op = s[pos++];
+      const rhs = parseFactor();
+      value = op === "*" ? value * rhs : value / rhs;
+      skipWs();
+    }
+    return value;
+  };
+
+  const parseFactor = (): number => {
+    skipWs();
+    if (s[pos] === "+") { pos++; return parseFactor(); }
+    if (s[pos] === "-") { pos++; return -parseFactor(); }
+    if (s[pos] === "(") {
+      pos++;
+      const value = parseExpr();
+      skipWs();
+      if (s[pos] !== ")") throw new Error("expected )");
+      pos++;
+      return value;
+    }
+    const start = pos;
+    while (pos < s.length && /[0-9.]/.test(s[pos])) pos++;
+    if (pos === start) throw new Error("expected number");
+    const num = parseFloat(s.slice(start, pos));
+    if (isNaN(num)) throw new Error("invalid number");
+    return num;
+  };
+
+  try {
+    const result = parseExpr();
+    skipWs();
+    if (pos !== s.length || !isFinite(result)) return null;
+    return result;
+  } catch {
+    return null;
+  }
+}
+
+// True when the input is more than a plain number, i.e. it actually uses an
+// operator — used to decide whether to show the "= value" preview.
+function containsOperator(input: string): boolean {
+  const t = input.trim();
+  return /[+*/xX×÷()]/.test(t) || /\d\s*-/.test(t);
+}
+
+// Compact preview of a computed value: up to 6 decimals, trailing zeros trimmed.
+function formatPreview(n: number): string {
+  return parseFloat(n.toFixed(6)).toString();
+}
+
 export default function Home() {
   const [tableExpanded, setTableExpanded] = useState(false);
   const [resultsHeight, setResultsHeight] = useState(0);
@@ -130,13 +209,13 @@ export default function Home() {
 
   const calculated = useMemo(() => {
     return items.map((item, index) => {
-      const price = parseFloat(item.price);
-      const qty = parseFloat(item.quantity);
+      const priceVal = evaluateExpression(item.price);
+      const qtyVal = evaluateExpression(item.quantity);
       const ppu =
-        !isNaN(price) && !isNaN(qty) && qty > 0 && price >= 0
-          ? price / qty
+        priceVal !== null && qtyVal !== null && qtyVal > 0 && priceVal >= 0
+          ? priceVal / qtyVal
           : null;
-      return { ...item, ppu, label: `Item ${index + 1}` };
+      return { ...item, priceVal, qtyVal, ppu, label: `Item ${index + 1}` };
     });
   }, [items]);
 
@@ -248,10 +327,9 @@ export default function Home() {
                     $
                   </span>
                   <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    onWheel={(e) => e.currentTarget.blur()}
+                    type="text"
+                    inputMode="text"
+                    autoComplete="off"
                     value={item.price}
                     onChange={(e) => updateItem(item.id, "price", e.target.value)}
                     placeholder="0.00"
@@ -263,6 +341,14 @@ export default function Home() {
                     }}
                   />
                 </div>
+                {containsOperator(item.price) && item.priceVal !== null && (
+                  <p
+                    className="mt-1.5 text-[11px]"
+                    style={{ fontFamily: "var(--font-dm-mono), monospace", color: "var(--color-accent)" }}
+                  >
+                    = ${formatPreview(item.priceVal)}
+                  </p>
+                )}
               </div>
 
               {/* Quantity field */}
@@ -320,10 +406,9 @@ export default function Home() {
                   </div>
                 </div>
                 <input
-                  type="number"
-                  min="0"
-                  step="any"
-                  onWheel={(e) => e.currentTarget.blur()}
+                  type="text"
+                  inputMode="text"
+                  autoComplete="off"
                   value={item.quantity}
                   onChange={(e) => updateItem(item.id, "quantity", e.target.value)}
                   placeholder="0"
@@ -337,6 +422,14 @@ export default function Home() {
                   onFocus={(e) => (e.currentTarget.style.borderColor = "var(--color-accent)")}
                   onBlur={(e) => (e.currentTarget.style.borderColor = "var(--color-border)")}
                 />
+                {containsOperator(item.quantity) && item.qtyVal !== null && (
+                  <p
+                    className="mt-1.5 text-[11px]"
+                    style={{ fontFamily: "var(--font-dm-mono), monospace", color: "var(--color-accent)" }}
+                  >
+                    = {formatPreview(item.qtyVal)}
+                  </p>
+                )}
               </div>
 
               {/* Price per unit result */}
