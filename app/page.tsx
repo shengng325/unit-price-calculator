@@ -328,7 +328,7 @@ export default function Home() {
                   </span>
                   <input
                     type="text"
-                    inputMode="tel"
+                    inputMode="text"
                     autoComplete="off"
                     value={item.price}
                     onChange={(e) => updateItem(item.id, "price", e.target.value)}
@@ -407,7 +407,7 @@ export default function Home() {
                 </div>
                 <input
                   type="text"
-                  inputMode="tel"
+                  inputMode="text"
                   autoComplete="off"
                   value={item.quantity}
                   onChange={(e) => updateItem(item.id, "quantity", e.target.value)}
